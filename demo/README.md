@@ -5,8 +5,8 @@ The source code lives under `src/` and `tests/` at the repository root.
 Run from the repository root:
 
 ```bash
-dotnet restore CleanArchitecture.slnx
-dotnet test CleanArchitecture.slnx
+dotnet restore CleanArchitecture.sln
+dotnet test CleanArchitecture.sln
 dotnet run --project src/CleanArchitecture.Api --urls http://localhost:5080
 ```
 
