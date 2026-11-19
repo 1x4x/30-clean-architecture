@@ -10,9 +10,66 @@ A visual, practical guide to building software that stays maintainable as techno
 ![Dependency Rule](https://img.shields.io/badge/DEPENDENCIES-INWARD-22d3ee?style=for-the-badge&labelColor=0d1117)
 ![Design](https://img.shields.io/badge/DESIGN-FRAMEWORK--INDEPENDENT-34d399?style=for-the-badge&labelColor=0d1117)
 
-[Overview](#-overview) • [Layers](#-the-four-layers) • [Dependency Rule](#-the-dependency-rule) • [Example](#-putting-it-together) • [Trade-offs](#-trade-offs)
+[Run the .NET demo](#-run-the-working-net-solution) • [Overview](#-overview) • [Layers](#-the-four-layers) • [Dependency Rule](#-the-dependency-rule) • [Example](#-putting-it-together) • [Trade-offs](#-trade-offs)
 
 </div>
+
+---
+
+## 🚀 Run the working .NET solution
+
+This repository now includes a **real, multi-project C# / .NET 8 example**. Explore the source, execute the API, run the tests, and inspect the dependency boundaries yourself.
+
+[![.NET 8](https://img.shields.io/badge/.NET-8-8b5cf6?style=for-the-badge&labelColor=0d1117)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![Source code](https://img.shields.io/badge/EXPLORE-SOURCE-60a5fa?style=for-the-badge&labelColor=0d1117)](./src)
+[![Download ZIP](https://img.shields.io/badge/DOWNLOAD-ZIP-34d399?style=for-the-badge&labelColor=0d1117)](https://github.com/1x4x/30-clean-architecture/archive/refs/heads/main.zip)
+
+**[⬇ Download the complete .NET solution as ZIP](https://github.com/1x4x/30-clean-architecture/archive/refs/heads/main.zip)** · **[Open the Visual Studio solution](./CleanArchitecture.sln)** · **[Read the demo instructions](./demo/README.md)**
+
+### What is included?
+
+| Project | Responsibility | Depends on |
+| --- | --- | --- |
+| [Domain](./src/CleanArchitecture.Domain) | `Order`, `OrderItem`, validation, state transitions | No application projects |
+| [Application](./src/CleanArchitecture.Application) | `CreateOrder`, `ConfirmOrder`, `IOrderRepository` port | Domain |
+| [Infrastructure](./src/CleanArchitecture.Infrastructure) | In-memory repository adapter | Application, transitively Domain |
+| [API](./src/CleanArchitecture.Api) | ASP.NET Core minimal API and dependency injection | Application, Infrastructure |
+| [Tests](./tests/CleanArchitecture.Tests) | Domain, use-case, and assembly dependency checks | Tested projects |
+
+### Start the API
+
+Install the **.NET 8 SDK** (or a newer SDK capable of targeting .NET 8), then run from the repository root:
+
+```bash
+dotnet restore CleanArchitecture.sln
+dotnet test CleanArchitecture.sln
+dotnet run --project src/CleanArchitecture.Api --urls http://localhost:5080
+```
+
+In another terminal, create an order:
+
+```bash
+curl -i -X POST http://localhost:5080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"sku":"BOOK","unitPrice":25,"quantity":2}'
+```
+
+Copy the `id` from the JSON response, then confirm and inspect the order:
+
+```bash
+curl -i -X POST http://localhost:5080/orders/YOUR_ORDER_ID/confirm
+curl http://localhost:5080/orders/YOUR_ORDER_ID
+```
+
+You should see a confirmed order with a total of **50**. You can also try invalid prices or quantities and see the domain rule reject them.
+
+### Prove the separation
+
+Run `dotnet test CleanArchitecture.sln`. The tests exercise domain invariants and application use cases **without starting the web server or connecting to a database**. They also inspect assembly references to check that Domain and Application do not reference outer projects or ASP.NET Core/EF Core.
+
+**What to try:** Replace `InMemoryOrderRepository` with a database-backed implementation of `IOrderRepository`. The `Order`, `CreateOrder`, and `ConfirmOrder` code should remain unchanged. This is the dependency rule in action.
+
+> **Demo scope:** The in-memory repository loses data on restart and is not production-safe for concurrent updates. The solution demonstrates architecture, not a complete commerce platform. It has not been executed in the authoring environment; verify with `dotnet test` locally.
 
 ---
 
